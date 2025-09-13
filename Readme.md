@@ -92,3 +92,5 @@ When you drive forward:
   - Y change = cos(angle) \* speed
 
 Notice it’s sin for X, cos for Y (instead of the usual cos/sin swap). That’s because you rotated your definition of 0° so “up” is the starting point.
+
+==============================================================
