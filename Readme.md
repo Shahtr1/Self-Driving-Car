@@ -94,3 +94,35 @@ When you drive forward:
 Notice it’s sin for X, cos for Y (instead of the usual cos/sin swap). That’s because you rotated your definition of 0° so “up” is the starting point.
 
 ==============================================================
+
+## Sensors
+
+1. Range of angles
+
+**_look at the unit-circle-sensor.png picture in pictures folder_**
+
+- ray spread = 45 degrees;
+- left boundary = +45/2 = +22.5 degrees;
+- right boundary = -45/2 = -22.5 degrees;
+
+So the allowed angles are between `–22.5°` and `+22.5°` relative to the car’s forward direction.
+
+2. What lerp does?
+
+```js
+rayAngle = lerp(+spread / 2, -spread / 2, t);
+```
+
+- If `t = 0` → rayAngle = +22.5° (leftmost ray).
+- If `t = 1` → rayAngle = –22.5° (rightmost ray).
+- If `t = 0.5` → rayAngle = 0° (straight ahead).
+
+3. Multiple rays
+
+With `rayCount = 3` and `t = i/(rayCount-1)`:
+
+- i=0 → t=0 → rayAngle = +22.5°
+- i=1 → t=0.5 → rayAngle = 0°
+- i=2 → t=1 → rayAngle = –22.5°
+
+That matches your picture: left, center, right.
