@@ -88,16 +88,13 @@ class Car {
     this.y -= Math.cos(this.angle) * this.speed;
   }
 
-  draw(ctx) {
-    ctx.save();
-    ctx.translate(this.x, this.y);
-    ctx.rotate(-this.angle);
-
-    ctx.beginPath();
-    ctx.rect(-this.width / 2, -this.height / 2, this.width, this.height);
-    ctx.fill();
-
-    ctx.restore();
+  draw(context) {
+    context.beginPath();
+    context.moveTo(this.polygon[0].x, this.polygon[0].y);
+    for (let i = 1; i < this.polygon.length; i++) {
+      context.lineTo(this.polygon[i].x, this.polygon[i].y);
+    }
+    context.fill();
 
     this.sensor.draw(ctx);
   }
