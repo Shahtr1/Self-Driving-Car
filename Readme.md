@@ -126,3 +126,62 @@ With `rayCount = 3` and `t = i/(rayCount-1)`:
 - i=2 → t=1 → rayAngle = –22.5°
 
 That matches your picture: left, center, right.
+
+============================================================
+
+## Representing car as a polygon
+
+**Reference car_polygon.png in pictures folder**
+
+1. What we want
+
+We have a rectangle (the car) centered at `(cx, cy)` with width `w` and height `h`, rotated by `θ` (your `this.angle`). We want the world coordinates of the 4 rectangle corners so we can draw the rotated rectangle and do collisions.
+
+```js
+const rad = Math.hypot(this.width, this.height) / 2;
+const alpha = Math.atan2(this.width, this.height);
+```
+
+1. Geometry — what rad and alpha are
+
+Imagine the car rectangle centered at `(cx, cy)` with width `w` and height `h`. The 4 corners lie on the circle centered at `(cx, cy)` that passes through all corners.
+
+rad = distance from center to any corner = half the diagonal of the rectangle.
+
+​$$\text{rad} = \frac{\sqrt{w^2 + h^2}}{2}$$
+
+alpha = angle between the rectangle’s vertical axis and the diagonal to a corner. The code uses
+
+```js
+alpha = Math.atan2(w, h);
+```
+
+If the car is rotated by `θ` (your this.angle), the corner’s global direction is `θ ± α` (and the opposite-corner directions are `θ ± α + π`).
+
+2. The corner-angle formulas (the 4 directions)
+
+Because corners are symmetric around the circle, their polar angles (measured from the car’s forward/vertical direction) are:
+
+$$
+\begin{aligned}
+\phi_1 &= \theta - \alpha \\
+\phi_2 &= \theta + \alpha \\
+\phi_3 &= \theta + \pi - \alpha \\
+\phi_4 &= \theta + \pi + \alpha
+\end{aligned}
+$$
+
+(Those four are spaced by 90° = π/2 around the circle.)
+
+Once you have a corner angle `φ`, convert polar → Cartesian (note: the formulas below assume the angle θ is measured from the vertical and that screen y increases downward, which is the common canvas convention):
+
+```js
+x = cx + rad * sin(phi);
+y = cy - rad * cos(phi);
+```
+
+Why sin for x and cos for y? Because we used the vertical axis as the zero-angle reference:
+
+- `φ = 0` points straight up (negative y),
+- `sin(φ)` gives the horizontal offset,
+- `cos(φ)` gives the vertical offset; because up is negative y we subtract `rad*cos(φ)`.
