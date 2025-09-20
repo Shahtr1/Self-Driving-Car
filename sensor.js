@@ -63,25 +63,25 @@ class Sensor {
     }
   }
 
-  draw(ctx) {
+  draw(context) {
     for (let i = 0; i < this.rayCount; i++) {
       let end = this.rays[i][1];
       if (this.readings[i]) {
         end = this.readings[i];
       }
-      ctx.beginPath();
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = "yellow";
-      ctx.moveTo(this.rays[i][0].x, this.rays[i][0].y);
-      ctx.lineTo(end.x, end.y);
-      ctx.stroke();
+      context.beginPath();
+      context.lineWidth = 2;
+      context.strokeStyle = "yellow";
+      context.moveTo(this.rays[i][0].x, this.rays[i][0].y);
+      context.lineTo(end.x, end.y);
+      context.stroke();
 
-      ctx.beginPath();
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = "black";
-      ctx.moveTo(this.rays[i][1].x, this.rays[i][1].y);
-      ctx.lineTo(end.x, end.y);
-      ctx.stroke();
+      context.beginPath();
+      context.lineWidth = 2;
+      context.strokeStyle = "black";
+      context.moveTo(this.rays[i][1].x, this.rays[i][1].y);
+      context.lineTo(end.x, end.y);
+      context.stroke();
     }
   }
 }
