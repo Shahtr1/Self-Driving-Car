@@ -1,8 +1,12 @@
-const canvas = document.getElementById("myCanvas");
-canvas.width = 200;
+const carCanvas = document.getElementById("carCanvas");
+carCanvas.width = 200;
 
-const context = canvas.getContext("2d");
-const road = new Road(canvas.width / 2, canvas.width * 0.9);
+const networkCanvas = document.getElementById("networkCanvas");
+networkCanvas.width = 300;
+
+const carCtx = carCanvas.getContext("2d");
+const networkCtx = networkCanvas.getContext("2d");
+const road = new Road(carCanvas.width / 2, carCanvas.width * 0.9);
 const car = new Car(road.getLaneCenter(1), 100, 30, 50, "AI");
 const traffic = [new Car(road.getLaneCenter(1), -100, 30, 50, "DUMMY", 0.5)];
 
@@ -14,19 +18,22 @@ function animate() {
   }
   car.update(road.borders, traffic);
 
-  canvas.height = window.innerHeight; // makes it clear
+  carCanvas.height = window.innerHeight; // makes it clear
+  networkCanvas.height = window.innerHeight; // makes it clear
 
-  context.save();
+  carCtx.save();
   //   trick that makes the camera follow the car
-  context.translate(0, -car.y + canvas.height * 0.7);
+  carCtx.translate(0, -car.y + carCanvas.height * 0.7);
 
-  road.draw(context);
+  road.draw(carCtx);
   for (let i = 0; i < traffic.length; i++) {
-    traffic[i].draw(context, "red");
+    traffic[i].draw(carCtx, "red");
   }
-  car.draw(context, "blue");
+  car.draw(carCtx, "blue");
 
-  context.restore();
+  carCtx.restore();
+
+  Visualizer.drawNetwork(networkCtx, car.brain);
 
   requestAnimationFrame(animate);
 }
