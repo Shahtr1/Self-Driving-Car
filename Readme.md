@@ -185,3 +185,151 @@ Why sin for x and cos for y? Because we used the vertical axis as the zero-angle
 - `φ = 0` points straight up (negative y),
 - `sin(φ)` gives the horizontal offset,
 - `cos(φ)` gives the vertical offset; because up is negative y we subtract `rad*cos(φ)`.
+
+===================================
+
+## Neural Network Idea
+
+Imagine you’re driving with a self-driving AI brain that gets input from sensors.
+The brain has to decide: go forward, turn, or brake.
+
+1. Sensors (the $s_i$)
+
+Sensors give numbers:
+
+- $s_1$ = front distance (meters to obstacle ahead).
+- $s_2$ = left distance (meters to obstacle on left).
+- $s_3$ = right distance.
+- $s_4$ = back distance.
+
+Higher values mean "more space," lower means "danger close."
+
+2. Weights (the $w_i$)
+
+Each sensor has a different importance depending on the decision.
+
+For braking neuron:
+
+- $w_1$ = −2 (front very important).
+- $w_2$ = −0.3 (left slightly matters).
+- $w_3$ = −0.3 (right slightly matters).
+- $w_4$ = 0 (back doesn’t matter).
+
+Equation:
+
+$$
+  activation_{brake} = w_1\ s_1 + w_2\ s_2 + w_3\ s_3 + w_4\ s_4 + b
+$$
+
+### Table of Scenarios
+
+| Scenario                           | $s_1$ (front) | $s_2$ (left) | $s_3$ (right) | $s_4$ (back) | Calculation                                                                   | Decision                                  |
+| ---------------------------------- | ------------- | ------------ | ------------- | ------------ | ----------------------------------------------------------------------------- | ----------------------------------------- |
+| A: Clear road                      | 20            | 10           | 10            | 8            | $(-2)(20) + (-0.3)(10) + (-0.3)(10) + 0 + 10$ = -40 - 3 - 3 + 10 = **-36**    | ❌ No brake                               |
+| B: Car ahead (3m)                  | 3             | 10           | 10            | 8            | $(-2)(3) + (-0.3)(10) + (-0.3)(10) + 0 + 10$ = -6 - 3 - 3 + 10 = **-2**       | ❌ No brake yet                           |
+| C: Car very close (1m)             | 1             | 10           | 10            | 8            | $(-2)(1) + (-0.3)(10) + (-0.3)(10) + 0 + 10$ = -2 - 3 - 3 + 10 = **2**        | ✅ Brake                                  |
+| D: Wall close left                 | 20            | 1            | 20            | 8            | $(-2)(20) + (-0.3)(1) + (-0.3)(20) + 0 + 10$ = -40 - 0.3 - 6 + 10 = **-36.3** | ❌ No brake (better to steer left neuron) |
+| E: Narrow gap (front 2m, sides 2m) | 2             | 2            | 2             | 8            | $(-2)(2) + (-0.3)(2) + (-0.3)(2) + 0 + 10$ = -4 - 0.6 - 0.6 + 10 = **4.8**    | ✅ Brake                                  |
+
+### Intution:
+
+- In A: Front is clear (big number), weighted heavily negative → car says “safe.”
+- In B: Front is a little close, but not too bad. Total still below bias → no brake.
+- In C: Obstacle super close → strong negative from front, but bias pushes total above 0 → Brake!
+- In D: Side is blocked, but front is fine → no brake (steering neuron will handle it).
+- In E: Everything is too close → total goes positive → Brake!
+
+This is why we need multiple $w_{i's}$: each sensor contributes differently. Without weights, scenario A and C might look “equally safe,” which would crash the car.
+
+### Scenario table for “Turn Left”
+
+Possible weights:
+
+- $w_1$ = −0.5 (if front blocked, consider turning).
+- $w_2$=−2 (if left blocked, don’t turn left).
+- $w_3$=+2 (if right blocked, do turn left).
+- $w_4$=0 (back doesn’t matter).
+- Bias = threshold.
+
+### Putting it all together
+
+At each moment:
+
+- Brake neuron checks → should I brake?
+- Turn-left neuron checks → should I steer left?
+- Turn-right neuron checks → should I steer right?
+- Forward neuron checks → should I just continue?
+
+The car’s controller looks at all neuron outputs and decides final action.
+
+| Brake | Left | Right | Forward | Car’s Action               |
+| ----- | ---- | ----- | ------- | -------------------------- |
+| 1     | 0    | 0     | 0       | Brake hard                 |
+| 0     | 1    | 0     | 0       | Turn left                  |
+| 0     | 0    | 1     | 0       | Turn right                 |
+| 0     | 0    | 0     | 1       | Go forward                 |
+| 0     | 1    | 0     | 1       | Slight left while moving   |
+| 1     | 0    | 1     | 0       | Brake while steering right |
+
+## Explaining code more better
+
+The code randomizes both weights and biases between -1 and 1:
+
+```js
+level.weights[i][j] = Math.random() * 2 - 1; // between -1 and 1
+level.biases[i] = Math.random() * 2 - 1; // between -1 and 1
+```
+
+So everything starts small, like:
+
+- weights = -0.7, 0.3, 0.9 …
+- biases = -0.2, +0.8, …
+
+In most AI code, the sensor inputs are normalized into a small range (like 0 to 1).
+
+- Distance 20m → normalized to 1.0.
+- Distance 0m → normalized to 0.0.
+- Distance 10m → normalized to 0.5.
+
+### Putting it together
+
+If inputs are in [0, 1], then:
+
+- A weight between -1 and 1 is enough to scale its importance.
+- A bias between -1 and 1 is enough to shift the threshold.
+
+Example:
+
+- Input s = 0.2 (obstacle fairly close).
+- Weight w = −0.8.
+- Bias b = 0.5.
+
+Sum = $(−0.8)(0.2)+0.5=−0.16+0.5=0.34$.
+
+If condition is sum > bias (or sum > threshold), that can flip the neuron on or off — even with small numbers.
+
+```js
+if (sum > level.biases[i]) {
+  level.outputs[i] = 1;
+} else {
+  level.outputs[i] = 0;
+}
+```
+
+Our code uses the formula:
+
+$$
+\text{output} =
+\begin{cases}
+1 & \text{if } \sum_j (s_j \cdot w_{j,i}) > b_i \\
+0 & \text{otherwise}
+\end{cases}
+$$
+
+Normally in neural networks, the formula is:
+
+$$
+z = \sum_j (s_j \cdot w_{j,i}) + b_i
+$$
+
+then apply activation (like step, sigmoid, ReLU).
