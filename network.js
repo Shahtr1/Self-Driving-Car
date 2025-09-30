@@ -13,6 +13,27 @@ class NeuralNetwork {
     }
     return outputs;
   }
+
+  static mutate(network, amount = 1) {
+    // IMPORTANT: keep amount in [0,1]
+    amount = Math.max(0, Math.min(1, amount));
+
+    network.levels.forEach((level) => {
+      // mutate biases (one per output neuron)
+      for (let j = 0; j < level.biases.length; j++) {
+        const rand = Math.random() * 2 - 1; // in [-1, 1]
+        level.biases[j] = lerp(level.biases[j], rand, amount);
+      }
+
+      // mutate weights (matrix: inputs x outputs)
+      for (let i = 0; i < level.weights.length; i++) {
+        for (let j = 0; j < level.weights[i].length; j++) {
+          const rand = Math.random() * 2 - 1; // in [-1, 1]
+          level.weights[i][j] = lerp(level.weights[i][j], rand, amount);
+        }
+      }
+    });
+  }
 }
 
 class Level {

@@ -333,3 +333,21 @@ z = \sum_j (s_j \cdot w_{j,i}) + b_i
 $$
 
 then apply activation (like step, sigmoid, ReLU).
+
+## Network File
+
+The neural network controls the car.
+
+### What your `mutate` method is doing?
+
+1. Mental model (what mutate means)
+
+Think of every weight `w[i][j]` and bias `b[j]` as a little knob.
+mutate takes each knob and nudges it toward a fresh random value in `[-1, 1]`.
+The “nudge strength” is amount:
+
+- `amount = 0` → no change (exactly the same network).
+- `amount = 1` → fully randomized (like reinitializing the net).
+- `0 < amount < 1` → small, controlled mutations.
+
+2. The exact operation (what mutate does)
